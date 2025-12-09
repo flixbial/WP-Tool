@@ -1,0 +1,1463 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <title>Heizungs-Vergleich mit CO₂-Kosten & Förderrechner</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background-color: #f5f5f5;
+      margin: 0;
+      padding: 1.5rem;
+      color: #222;
+    }
+    h1 {
+      margin-top: 0;
+      font-size: 1.6rem;
+    }
+    .muted {
+      color: #555;
+      font-size: 0.9rem;
+      margin-bottom: 1.2rem;
+    }
+    .card {
+      background: #fff;
+      border-radius: 10px;
+      padding: 1.2rem 1.4rem;
+      margin-bottom: 1.2rem;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+      page-break-inside: avoid;
+    }
+    .card h2 {
+      margin-top: 0;
+      font-size: 1.3rem;
+    }
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 1rem 2rem;
+    }
+    label {
+      display: block;
+      font-size: 0.9rem;
+      margin-bottom: 0.2rem;
+      font-weight: 600;
+    }
+    .help {
+      font-size: 0.8rem;
+      color: #555;
+      margin-top: 0.1rem;
+      margin-bottom: 0.4rem;
+    }
+    input, select {
+      width: 100%;
+      padding: 0.35rem 0.4rem;
+      border-radius: 4px;
+      border: 1px solid #bbb;
+      font-size: 0.9rem;
+      box-sizing: border-box;
+    }
+    input:focus, select:focus {
+      outline: none;
+      border-color: #0077cc;
+      box-shadow: 0 0 0 1px rgba(0,119,204,0.3);
+    }
+    .row {
+      margin-bottom: 0.6rem;
+    }
+    .btn-bar {
+      text-align: right;
+      margin-top: 0.8rem;
+    }
+    button {
+      background: #0077cc;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      padding: 0.5rem 1rem;
+      font-size: 0.9rem;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #005fa3;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+    }
+    th, td {
+      padding: 0.4rem 0.5rem;
+      border-bottom: 1px solid #e0e0e0;
+      text-align: right;
+    }
+    th:first-child, td:first-child {
+      text-align: left;
+    }
+    th {
+      background: #f0f0f0;
+      font-weight: 600;
+    }
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 0.8rem;
+      margin-top: 0.8rem;
+    }
+    .summary-box {
+      background: #fafafa;
+      border-radius: 6px;
+      padding: 0.7rem 0.8rem;
+      border: 1px solid #e0e0e0;
+    }
+    .summary-title {
+      font-size: 0.8rem;
+      color: #555;
+      margin-bottom: 0.25rem;
+    }
+    .summary-value {
+      font-size: 1rem;
+      font-weight: 600;
+    }
+    .summary-note {
+      font-size: 0.8rem;
+      color: #777;
+      margin-top: 0.2rem;
+    }
+    .highlight-positive {
+      color: #1b5e20;
+    }
+    .highlight-negative {
+      color: #b71c1c;
+    }
+    .info-box {
+      background: #f5f8ff;
+      border-radius: 8px;
+      border: 1px solid #d0e3ff;
+      padding: 0.8rem 0.9rem;
+      font-size: 0.85rem;
+      color: #333;
+      margin-top: 0.5rem;
+    }
+    .info-box ul {
+      margin: 0.4rem 0 0.2rem 1.2rem;
+      padding: 0;
+    }
+    .info-box li {
+      margin-bottom: 0.2rem;
+    }
+    .inline-btn {
+      display: inline-block;
+      margin-top: 0.3rem;
+    }
+    .hint {
+      font-size: 0.8rem;
+      color: #666;
+    }
+    .result-box {
+      background: #fafafa;
+      border-radius: 6px;
+      border: 1px solid #e0e0e0;
+      padding: 0.6rem 0.8rem;
+      margin-top: 0.8rem;
+      font-size: 0.9rem;
+    }
+
+    /* Diagramm-Styles */
+    .chart-container {
+      margin-top: 1.2rem;
+    }
+    .chart-title {
+      font-weight: 600;
+      margin-bottom: 0.3rem;
+    }
+    .chart-note {
+      font-size: 0.85rem;
+      color: #666;
+      margin-bottom: 0.5rem;
+    }
+
+    /* Modal / Pop-up */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.45);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 999;
+    }
+    .modal {
+      background: #fff;
+      border-radius: 10px;
+      padding: 1.2rem 1.4rem;
+      max-width: 600px;
+      width: 95%;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+    }
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.5rem;
+    }
+    .modal-header h2 {
+      margin: 0;
+      font-size: 1.2rem;
+    }
+    .modal-close {
+      background: transparent;
+      border: none;
+      font-size: 1.2rem;
+      cursor: pointer;
+      color: #555;
+      padding: 0 0.2rem;
+    }
+    .modal-footer {
+      text-align: right;
+      margin-top: 0.8rem;
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.5rem;
+    }
+    .btn-secondary {
+      background: #e0e0e0;
+      color: #222;
+    }
+    .btn-secondary:hover {
+      background: #c7c7c7;
+    }
+
+    /* Print */
+    @media print {
+      body {
+        background: #fff;
+        padding: 0;
+      }
+      button {
+        display: none;
+      }
+      .card {
+        box-shadow: none;
+        border-radius: 0;
+        margin: 0 0 0.5rem 0;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<h1>Heizungs-Vergleich mit CO₂-Kosten & Förderrechner</h1>
+<p class="muted">
+  Vergleich fossil vs. Wärmepumpe aus Vermietersicht. CO₂-Kosten nach Stufenmodell (CO₂KostAufG),
+  Emissionsfaktoren und CO₂-Preisszenarien wie in deinem CO₂-Kostentool. Die Wärmepumpenförderung
+  wird über ein Pop-up berechnet und direkt übernommen.
+</p>
+
+<!-- 1. Gebäudedaten & CO2-Szenario -->
+<div class="card">
+  <h2>1. Gebäudedaten & CO₂-Preisszenario</h2>
+  <div class="grid-2">
+    <div>
+      <div class="row">
+        <label for="heatDemand">Heizwärmebedarf / Energieverbrauch (kWh/a)</label>
+        <input id="heatDemand" type="number" value="30000" min="0" step="1000">
+        <div class="help">
+          Jährlicher Wärme- bzw. Energiebedarf des Gebäudes für Heizung.
+        </div>
+      </div>
+
+      <div class="row">
+        <label for="area">Gebäudefläche (m²)</label>
+        <input id="area" type="number" value="500" min="1" step="10">
+        <div class="help">
+          Wohn-/Nutzfläche, für CO₂-Berechnung pro m² (Stufenmodell) und Förderhöchstbetrag (KfW 522).
+        </div>
+      </div>
+
+      <div class="row">
+        <label for="units">Anzahl Wohneinheiten</label>
+        <input id="units" type="number" value="4" min="1" step="1">
+        <div class="help">
+          Wird für die Heizungs-Förderobergrenze bei Wohngebäuden genutzt.
+        </div>
+      </div>
+
+      <div class="row">
+        <label for="years">Betrachtungszeitraum (Jahre)</label>
+        <input id="years" type="number" value="20" min="1" max="40" step="1">
+        <div class="help">
+          Zeitraum der Wirtschaftlichkeitsbetrachtung (z.&nbsp;B. 20 Jahre).
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="row">
+        <label for="co2Scenario">CO₂-Preis-Szenario</label>
+        <select id="co2Scenario">
+          <option>Sehr niedrig</option>
+          <option>Niedrig</option>
+          <option selected>Experten</option>
+          <option>Hoch</option>
+          <option>Sehr hoch</option>
+        </select>
+        <div class="help">
+          CO₂-Preispfad laut Tabelle „Szenarien“ aus deinem bestehenden Tool.
+        </div>
+      </div>
+
+      <div class="info-box">
+        <strong>Was bedeutet das Szenario?</strong><br>
+        Es legt fest, wie der CO₂-Preis (€/t) in Zukunft ansteigt.
+        <ul>
+          <li><strong>Sehr niedrig / Niedrig:</strong> eher konservative Pfade.</li>
+          <li><strong>Experten:</strong> realistische Mittellage.</li>
+          <li><strong>Hoch / Sehr hoch:</strong> starke CO₂-Preiserhöhung.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 2. Fossile Heizung -->
+<div class="card">
+  <h2>2. Fossile Heizung</h2>
+  <div class="grid-2">
+    <div>
+      <div class="row">
+        <label for="carrierFossil">Energiequelle fossile Heizung</label>
+        <select id="carrierFossil">
+          <option value="Erdgas">Erdgas</option>
+          <option value="Flüssiggas">Flüssiggas</option>
+          <option value="Heizöl" selected>Heizöl</option>
+          <option value="Pellets">Pellets</option>
+        </select>
+        <div class="help">Emissionsfaktor (kg CO₂/kWh) wird automatisch übernommen.</div>
+      </div>
+
+      <div class="info-box">
+        <strong>Emissionsfaktor</strong><br>
+        Zeigt, wie viel CO₂ pro kWh entsteht. Heizöl z.&nbsp;B. höher als Erdgas.
+      </div>
+    </div>
+
+    <div>
+      <div class="row">
+        <label for="investFossil">Investitionskosten fossile Heizung (€, einmalig)</label>
+        <input id="investFossil" type="number" value="30000" step="1000" min="0">
+      </div>
+
+      <div class="row">
+        <label for="effFossil">Wirkungsgrad fossile Heizung (%)</label>
+        <input id="effFossil" type="number" value="90" step="1" min="50" max="110">
+      </div>
+
+      <div class="row">
+        <label for="priceFossil">Brennstoffpreis heute (€/kWh)</label>
+        <input id="priceFossil" type="number" value="0.10" step="0.01" min="0">
+      </div>
+
+      <div class="row">
+        <label for="incFossil">jährliche Brennstoffpreissteigerung (%/a)</label>
+        <input id="incFossil" type="number" value="3" step="0.5" min="0">
+      </div>
+
+      <div class="row">
+        <label for="maintFossil">Wartungs-/Fixkosten fossile Heizung (€/a)</label>
+        <input id="maintFossil" type="number" value="800" min="0" step="50">
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 3. Wärmepumpe -->
+<div class="card">
+  <h2>3. Wärmepumpe</h2>
+  <div class="grid-2">
+    <div>
+      <div class="row">
+        <label for="carrierHP">Stromquelle / Strommix für Wärmepumpe</label>
+        <select id="carrierHP">
+          <option value="Strom Stromix" selected>Strom Stromix</option>
+          <option value="Strom Erneuerbar">Strom Erneuerbar</option>
+        </select>
+        <div class="help">
+          CO₂-Emissionen der WP werden nur aus dem Stromverbrauch berechnet.
+        </div>
+      </div>
+
+      <div class="row">
+        <label for="investHP">Investitionskosten Wärmepumpe (brutto, €)</label>
+        <input id="investHP" type="number" value="60000" step="1000" min="0">
+        <div class="inline-btn">
+          <button type="button" id="btnFoerderOpen">Förderrechner öffnen</button>
+        </div>
+      </div>
+
+      <div class="row">
+        <label for="subsidyHP">Förderung Wärmepumpe (Zuschuss, €)</label>
+        <input id="subsidyHP" type="number" value="15000" step="500" min="0">
+        <div class="help">
+          Wird vom Förderrechner übernommen oder kann manuell angepasst werden.
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="row">
+        <label for="jaz">Jahresarbeitszahl (JAZ) der Wärmepumpe</label>
+        <input id="jaz" type="number" value="3.0" step="0.1" min="1.5" max="6">
+      </div>
+
+      <div class="row">
+        <label for="priceEl">Strompreis heute (€/kWh)</label>
+        <input id="priceEl" type="number" value="0.30" step="0.01" min="0">
+      </div>
+
+      <div class="row">
+        <label for="incEl">jährliche Strompreissteigerung (%/a)</label>
+        <input id="incEl" type="number" value="2" step="0.5" min="0">
+      </div>
+
+      <div class="row">
+        <label for="maintHP">Wartungs-/Fixkosten Wärmepumpe (€/a)</label>
+        <input id="maintHP" type="number" value="600" min="0" step="50">
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 4. Stufenmodell -->
+<div class="card">
+  <h2>4. Verteilung der CO₂-Kosten – automatisches Stufenmodell</h2>
+  <div class="info-box">
+    <strong>CO₂KostAufG-Stufenmodell (Vermieteranteil an CO₂-Kosten)</strong><br>
+    Vermieteranteil aus spezifischen Emissionen in kg CO₂/m²a:
+    <ul>
+      <li>&lt; 12 → 0&nbsp;%</li>
+      <li>12 – &lt; 17 → 10&nbsp;%</li>
+      <li>17 – &lt; 22 → 20&nbsp;%</li>
+      <li>22 – &lt; 27 → 30&nbsp;%</li>
+      <li>27 – &lt; 32 → 40&nbsp;%</li>
+      <li>32 – &lt; 37 → 50&nbsp;%</li>
+      <li>37 – &lt; 42 → 60&nbsp;%</li>
+      <li>42 – &lt; 47 → 70&nbsp;%</li>
+      <li>47 – &lt; 52 → 80&nbsp;%</li>
+      <li>≥ 52 → 90&nbsp;%</li>
+    </ul>
+  </div>
+
+  <div class="summary-grid">
+    <div class="summary-box">
+      <div class="summary-title">Fossile Heizung – CO₂ & Vermieteranteil</div>
+      <div class="summary-value" id="outFossilCO2M2">–</div>
+      <div class="summary-note" id="outFossilShare">Vermieteranteil: –</div>
+    </div>
+    <div class="summary-box">
+      <div class="summary-title">Wärmepumpe – CO₂ & Vermieteranteil</div>
+      <div class="summary-value" id="outHPCO2M2">–</div>
+      <div class="summary-note" id="outHPShare">Vermieteranteil: –</div>
+    </div>
+  </div>
+</div>
+
+<!-- 5. Ergebnisse -->
+<div class="card">
+  <h2>5. Ergebnisse für Vermieter</h2>
+  <div class="btn-bar">
+    <button id="btnCalc">Berechnen</button>
+  </div>
+
+  <div class="summary-grid">
+    <div class="summary-box">
+      <div class="summary-title">Mehrinvestition Wärmepumpe (netto vs. fossil)</div>
+      <div class="summary-value" id="outExtraInvest">–</div>
+    </div>
+    <div class="summary-box">
+      <div class="summary-title">Einfache Amortisationszeit</div>
+      <div class="summary-value" id="outPayback">–</div>
+      <div class="summary-note">
+        Jahr, in dem kumulierte Einsparung die Mehrinvestition deckt.
+      </div>
+    </div>
+    <div class="summary-box">
+      <div class="summary-title">Gesamtkosten fossil (Vermieter)</div>
+      <div class="summary-value" id="outTotalFossil">–</div>
+    </div>
+    <div class="summary-box">
+      <div class="summary-title">Gesamtkosten Wärmepumpe (Vermieter)</div>
+      <div class="summary-value" id="outTotalHP">–</div>
+    </div>
+    <div class="summary-box">
+      <div class="summary-title">Vorteil/Nachteil Wärmepumpe</div>
+      <div class="summary-value" id="outSavings">–</div>
+      <div class="summary-note">positiv = WP günstiger, negativ = WP teurer.</div>
+    </div>
+  </div>
+
+  <h3 style="margin-top:1.2rem;">Jährliche Übersicht (Vermieter-Sicht)</h3>
+  <div style="max-height: 320px; overflow:auto; border:1px solid #eee; border-radius:4px;">
+    <table id="tableYears">
+      <thead>
+      <tr>
+        <th>Jahr</th>
+        <th>CO₂-Preis (€/t)</th>
+        <th>Vermieteranteil fossil</th>
+        <th>Vermieteranteil WP</th>
+        <th>Kosten fossil</th>
+        <th>Kosten WP</th>
+        <th>Delta (fossil − WP)</th>
+        <th>Kumulierte Einsparung</th>
+      </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- 6. Hinweise -->
+<div class="card">
+  <h2>6. Hinweise & Einordnung</h2>
+  <div class="info-box">
+    Dieses Tool ist eine Orientierungshilfe zur Abschätzung von CO₂-Kosten, Förderungen und
+    Wirtschaftlichkeit aus Vermietersicht. Es ersetzt keine individuelle Energie- oder Rechtsberatung.
+  </div>
+</div>
+
+<!-- 7. Grafische Auswertung & Druck -->
+<div class="card">
+  <h2>7. Grafische Auswertung & Druck</h2>
+  <div class="row" style="margin-bottom:0.8rem;">
+    <button type="button" onclick="window.print()">Seite drucken</button>
+    <span class="help">Die Diagramme werden in der Druckansicht mit ausgegeben.</span>
+  </div>
+
+  <div class="chart-container">
+    <div class="chart-title">Kumulierte Vermieterkosten – fossil vs. Wärmepumpe</div>
+    <div class="chart-note">
+      Linien-Diagramm mit Breakeven-Punkt (Schnittpunkt der beiden Linien).
+    </div>
+    <canvas id="lineChart" width="850" height="260"></canvas>
+  </div>
+
+  <div class="chart-container">
+    <div class="chart-title">Gesamtkosten im Betrachtungszeitraum</div>
+    <div class="chart-note">
+      Balkendiagramm der Gesamtkosten (Investition + Betrieb + CO₂-Anteil).
+    </div>
+    <canvas id="barChart" width="850" height="260"></canvas>
+  </div>
+</div>
+
+<!-- MODAL: Förderrechner -->
+<div id="foerderModalBackdrop" class="modal-backdrop">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>Förderrechner Wärmepumpe (BEG / KfW 522)</h2>
+      <button type="button" class="modal-close" id="btnFoerderClose">&times;</button>
+    </div>
+    <p class="hint">
+      Vereinfachter Förderrechner für Wohn- und Nichtwohngebäude. Bei Nichtwohngebäuden wird nach
+      KfW-Programm 522 (Grundförderung 30 %, Effizienzbonus 5 %, Förderhöchstbetrag nach m²) gerechnet.
+      Ergebnisse sind nur eine überschlägige Orientierung – maßgeblich sind die aktuellen Richtlinien und
+      Zusagen der Förderstellen.
+    </p>
+
+    <div class="row">
+      <label for="foerderGebaeudeArt"><strong>Gebäudeart</strong></label>
+      <select id="foerderGebaeudeArt">
+        <option value="wohn">Wohngebäude (Privatpersonen / WEG)</option>
+        <option value="nichtwohn">Nichtwohngebäude (Unternehmen, Vereine, Kommunen)</option>
+      </select>
+    </div>
+
+    <div class="row">
+      <label for="foerderInvest"><strong>Investitionskosten Wärmepumpe (brutto)</strong> [€]</label>
+      <input id="foerderInvest" type="number" value="25000" step="500" min="0">
+      <div class="help">
+        Wird beim Öffnen aus „Investitionskosten Wärmepumpe“ übernommen, kann aber angepasst werden.
+      </div>
+    </div>
+
+    <div class="row">
+      <label><strong>Gebäudedaten aus Hauptrechner</strong></label>
+      <div class="help">
+        Fläche: <span id="foerderInfoArea">–</span> m² &nbsp; | &nbsp;
+        Wohneinheiten: <span id="foerderInfoUnits">–</span>
+      </div>
+    </div>
+
+    <!-- Wohngebäude-Optionen -->
+    <div id="foerderWohnOptions">
+      <h3>Optionen Wohngebäude (KfW 458 – vereinfacht)</h3>
+      <p class="hint">
+        Grundförderung 30&nbsp;% + optional Klima-Geschwindigkeitsbonus (20&nbsp;%), Einkommensbonus (30&nbsp;%)
+        und Effizienzbonus (5&nbsp;%). Max. 70&nbsp;% Zuschuss.
+        Förderfähige Heizungs-Kostenobergrenze wird aus der Anzahl der Wohneinheiten berechnet.
+      </p>
+
+      <div class="row">
+        <label>
+          <input id="wohnKlimaBonus" type="checkbox">
+          Klima-Geschwindigkeitsbonus (funktionierende fossile Heizung wird bis 2028 ersetzt)
+        </label>
+      </div>
+
+      <div class="row">
+        <label>
+          <input id="wohnEinkommensBonus" type="checkbox">
+          Einkommensbonus (Haushaltseinkommen ≤ 40.000&nbsp;€/Jahr, selbstgenutztes Eigentum)
+        </label>
+      </div>
+
+      <div class="row">
+        <label>
+          <input id="wohnEffizienzBonus" type="checkbox">
+          Effizienzbonus (z.&nbsp;B. Erdreich-/Wasser-WP oder natürliches Kältemittel)
+        </label>
+      </div>
+    </div>
+
+    <!-- Nichtwohngebäude-Optionen -->
+    <div id="foerderNichtwohnOptions" style="display:none;">
+      <h3>Optionen Nichtwohngebäude (KfW-Programm 522)</h3>
+      <p class="hint">
+        Grundförderung 30&nbsp;% der förderfähigen Gesamtkosten.
+        Für effiziente elektrisch angetriebene Wärmepumpen kommt ein Effizienzbonus von 5&nbsp;% hinzu.
+        Die förderfähigen Gesamtkosten sind je Gebäude nach Nettogrundfläche gedeckelt:
+        30.000&nbsp;€ bis 150&nbsp;m², zusätzlich 200&nbsp;€/m² bis 400&nbsp;m², zusätzlich 120&nbsp;€/m² bis 1.000&nbsp;m²
+        und zusätzlich 80&nbsp;€/m² darüber. Der Emissionsminderungszuschlag für Biomasseanlagen
+        wird in diesem Wärmepumpen-Tool nicht berücksichtigt.
+      </p>
+
+      <div class="row">
+        <label>
+          <input id="nwgEffizienzBonus" type="checkbox">
+          Effiziente elektrisch angetriebene Wärmepumpe (Effizienzbonus 5&nbsp;% annehmen)
+        </label>
+      </div>
+    </div>
+
+    <div class="row">
+      <button type="button" id="btnFoerderCalc">Förderung berechnen</button>
+    </div>
+
+    <div id="foerderErgebnis" class="result-box">
+      <p>Bitte Daten eingeben und „Förderung berechnen“ klicken.</p>
+    </div>
+
+    <div class="modal-footer">
+      <button type="button" class="btn-secondary" id="btnFoerderCancel">Abbrechen</button>
+      <button type="button" id="btnFoerderApply">Förderung übernehmen</button>
+    </div>
+
+    <p class="hint">
+      Hinweis: Rechtsverbindlich sind nur die Richtlinien und Zusagen der KfW/BAFA.
+    </p>
+  </div>
+</div>
+
+<script>
+  // Emissionsfaktoren aus deinem Tool
+  const EMISSION_FACTORS = {
+    "Erdgas": 0.201,
+    "Flüssiggas": 0.239,
+    "Heizöl": 0.266,
+    "Strom Stromix": 0.107,
+    "Strom Erneuerbar": 0.0,
+    "Pellets": 0.036
+  };
+
+  // CO₂-Preispfade (€/t CO₂) aus deinem Tool („Szenarien“)
+  const SCENARIO_PRICES = {
+    "Sehr niedrig": [
+      { year: 2024, price: 45.0 },
+      { year: 2025, price: 55.0 },
+      { year: 2026, price: 57.0 },
+      { year: 2027, price: 59.0 },
+      { year: 2028, price: 61.0 },
+      { year: 2029, price: 63.0 },
+      { year: 2030, price: 65.0 },
+      { year: 2031, price: 67.0 },
+      { year: 2032, price: 69.0 },
+      { year: 2033, price: 71.0 },
+      { year: 2034, price: 73.0 },
+      { year: 2035, price: 75.0 },
+      { year: 2036, price: 77.0 },
+      { year: 2037, price: 79.0 },
+      { year: 2038, price: 81.0 },
+      { year: 2039, price: 83.0 },
+      { year: 2040, price: 85.0 },
+      { year: 2041, price: 87.0 },
+      { year: 2042, price: 89.0 },
+      { year: 2043, price: 91.0 },
+      { year: 2044, price: 93.0 }
+    ],
+    "Niedrig": [
+      { year: 2024, price: 45.0 },
+      { year: 2025, price: 55.0 },
+      { year: 2026, price: 60.0 },
+      { year: 2027, price: 65.0 },
+      { year: 2028, price: 70.0 },
+      { year: 2029, price: 75.0 },
+      { year: 2030, price: 80.0 },
+      { year: 2031, price: 85.0 },
+      { year: 2032, price: 90.0 },
+      { year: 2033, price: 95.0 },
+      { year: 2034, price: 100.0 },
+      { year: 2035, price: 105.0 },
+      { year: 2036, price: 110.0 },
+      { year: 2037, price: 115.0 },
+      { year: 2038, price: 120.0 },
+      { year: 2039, price: 125.0 },
+      { year: 2040, price: 130.0 },
+      { year: 2041, price: 135.0 },
+      { year: 2042, price: 140.0 },
+      { year: 2043, price: 145.0 },
+      { year: 2044, price: 150.0 }
+    ],
+    "Experten": [
+      { year: 2024, price: 45.0 },
+      { year: 2025, price: 55.0 },
+      { year: 2026, price: 67.5 },
+      { year: 2027, price: 80.0 },
+      { year: 2028, price: 92.5 },
+      { year: 2029, price: 105.0 },
+      { year: 2030, price: 117.5 },
+      { year: 2031, price: 130.0 },
+      { year: 2032, price: 142.5 },
+      { year: 2033, price: 155.0 },
+      { year: 2034, price: 167.5 },
+      { year: 2035, price: 180.0 },
+      { year: 2036, price: 192.5 },
+      { year: 2037, price: 205.0 },
+      { year: 2038, price: 217.5 },
+      { year: 2039, price: 230.0 },
+      { year: 2040, price: 242.5 },
+      { year: 2041, price: 255.0 },
+      { year: 2042, price: 267.5 },
+      { year: 2043, price: 280.0 },
+      { year: 2044, price: 292.5 }
+    ],
+    "Hoch": [
+      { year: 2024, price: 45.0 },
+      { year: 2025, price: 55.0 },
+      { year: 2026, price: 72.5 },
+      { year: 2027, price: 90.0 },
+      { year: 2028, price: 107.5 },
+      { year: 2029, price: 125.0 },
+      { year: 2030, price: 142.5 },
+      { year: 2031, price: 160.0 },
+      { year: 2032, price: 177.5 },
+      { year: 2033, price: 195.0 },
+      { year: 2034, price: 212.5 },
+      { year: 2035, price: 230.0 },
+      { year: 2036, price: 247.5 },
+      { year: 2037, price: 265.0 },
+      { year: 2038, price: 282.5 },
+      { year: 2039, price: 300.0 },
+      { year: 2040, price: 317.5 },
+      { year: 2041, price: 335.0 },
+      { year: 2042, price: 352.5 },
+      { year: 2043, price: 370.0 },
+      { year: 2044, price: 387.5 }
+    ],
+    "Sehr hoch": [
+      { year: 2024, price: 45.0 },
+      { year: 2025, price: 55.0 },
+      { year: 2026, price: 77.5 },
+      { year: 2027, price: 100.0 },
+      { year: 2028, price: 122.5 },
+      { year: 2029, price: 145.0 },
+      { year: 2030, price: 167.5 },
+      { year: 2031, price: 190.0 },
+      { year: 2032, price: 212.5 },
+      { year: 2033, price: 235.0 },
+      { year: 2034, price: 257.5 },
+      { year: 2035, price: 280.0 },
+      { year: 2036, price: 302.5 },
+      { year: 2037, price: 325.0 },
+      { year: 2038, price: 347.5 },
+      { year: 2039, price: 370.0 },
+      { year: 2040, price: 392.5 },
+      { year: 2041, price: 415.0 },
+      { year: 2042, price: 437.5 },
+      { year: 2043, price: 460.0 },
+      { year: 2044, price: 482.5 }
+    ]
+  };
+
+  function parseNum(id, defaultVal = 0) {
+    const el = document.getElementById(id);
+    if (!el) return defaultVal;
+    const v = parseFloat(String(el.value).replace(",", "."));
+    return isNaN(v) ? defaultVal : v;
+  }
+
+  function formatMoney(val, decimals = 0) {
+    return val.toLocaleString("de-DE", {
+      minimumFractionDigits: decimals,
+      maximumFractionDigits: decimals
+    }) + " €";
+  }
+
+  function formatNumber(val, decimals = 0) {
+    return val.toLocaleString("de-DE", {
+      minimumFractionDigits: decimals,
+      maximumFractionDigits: decimals
+    });
+  }
+
+  function formatPercent(val) {
+    return (val * 100).toLocaleString("de-DE", {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }) + " %";
+  }
+
+  function getScenarioPriceArray(scenarioName, years) {
+    const data = SCENARIO_PRICES[scenarioName] || [];
+    const prices = [];
+    const baseYear = new Date().getFullYear();
+    for (let i = 0; i < years; i++) {
+      const year = baseYear + i;
+      let entry = data.find(e => e.year === year);
+      if (!entry) {
+        entry = data[data.length - 1] || { price: 0 };
+      }
+      prices.push(entry.price);
+    }
+    return prices;
+  }
+
+  // Stufenmodell CO₂KostAufG: Vermieteranteil aus kg CO₂/m²a
+  function getLandlordShareFromSpecificEmissions(kgPerM2a) {
+    if (kgPerM2a < 12) return 0.0;
+    if (kgPerM2a < 17) return 0.10;
+    if (kgPerM2a < 22) return 0.20;
+    if (kgPerM2a < 27) return 0.30;
+    if (kgPerM2a < 32) return 0.40;
+    if (kgPerM2a < 37) return 0.50;
+    if (kgPerM2a < 42) return 0.60;
+    if (kgPerM2a < 47) return 0.70;
+    if (kgPerM2a < 52) return 0.80;
+    return 0.90;
+  }
+
+  // Heizungs-Förderobergrenze nach Wohneinheiten (Wohngebäude, vereinfacht KfW 458)
+  function getWohnGebaeudeKostenobergrenze(unitsRaw) {
+    let units = unitsRaw;
+    if (!isFinite(units) || units <= 0) units = 1;
+
+    if (units <= 1) {
+      return 30000;
+    } else if (units <= 6) {
+      return 30000 + (units - 1) * 15000;
+    } else {
+      return 30000 + 5 * 15000 + (units - 6) * 8000;
+    }
+  }
+
+  // Förderhöchstbetrag KfW 522 für Nichtwohngebäude nach Nettogrundfläche (m²)
+  function getNwgFoerderhoechstbetrag(area) {
+    if (!isFinite(area) || area <= 0) return 0;
+
+    let foerderhoechst = 30000; // pauschal bis 150 m²
+    if (area > 150) {
+      const a = Math.min(area, 400) - 150;
+      foerderhoechst += a * 200;
+    }
+    if (area > 400) {
+      const a = Math.min(area, 1000) - 400;
+      foerderhoechst += a * 120;
+    }
+    if (area > 1000) {
+      const a = area - 1000;
+      foerderhoechst += a * 80;
+    }
+    return foerderhoechst;
+  }
+
+  // Diagramme (wie vorher) – Linien + Balken
+  function drawComparisonLineChart(years, cumFossil, cumHP, paybackYear) {
+    const canvas = document.getElementById("lineChart");
+    if (!canvas || !canvas.getContext) return;
+    const ctx = canvas.getContext("2d");
+    const width = canvas.width;
+    const height = canvas.height;
+
+    ctx.clearRect(0, 0, width, height);
+
+    if (!years || !cumFossil.length || !cumHP.length) return;
+
+    const paddingLeft = 60;
+    const paddingRight = 20;
+    const paddingTop = 20;
+    const paddingBottom = 40;
+
+    const chartWidth = width - paddingLeft - paddingRight;
+    const chartHeight = height - paddingTop - paddingBottom;
+
+    const maxVal = Math.max(...cumFossil, ...cumHP, 1);
+    if (!isFinite(maxVal) || maxVal <= 0) return;
+
+    ctx.strokeStyle = "#444";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(paddingLeft, paddingTop);
+    ctx.lineTo(paddingLeft, height - paddingBottom);
+    ctx.lineTo(width - paddingRight, height - paddingBottom);
+    ctx.stroke();
+
+    ctx.fillStyle = "#222";
+    ctx.font = "11px system-ui, sans-serif";
+    ctx.textAlign = "right";
+    ctx.textBaseline = "middle";
+
+    const yTicks = 4;
+    for (let i = 0; i <= yTicks; i++) {
+      const value = (maxVal * i) / yTicks;
+      const y = height - paddingBottom - (chartHeight * i / yTicks);
+      ctx.fillText(formatNumber(value, 0) + " €", paddingLeft - 5, y);
+      ctx.strokeStyle = "#e0e0e0";
+      ctx.lineWidth = 0.5;
+      ctx.beginPath();
+      ctx.moveTo(paddingLeft, y);
+      ctx.lineTo(width - paddingRight, y);
+      ctx.stroke();
+    }
+
+    const n = years;
+    const stepX = chartWidth / Math.max(1, n - 1);
+
+    function yPos(val) {
+      return height - paddingBottom - (chartHeight * (val / maxVal));
+    }
+
+    ctx.textAlign = "center";
+    ctx.textBaseline = "top";
+    ctx.fillStyle = "#222";
+    for (let i = 0; i < n; i++) {
+      const x = paddingLeft + i * stepX;
+      const y = height - paddingBottom + 4;
+      if (n > 12 && i % 2 !== 0) continue;
+      ctx.fillText("J" + (i + 1), x, y);
+    }
+
+    ctx.strokeStyle = "#f44336";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    for (let i = 0; i < n; i++) {
+      const x = paddingLeft + i * stepX;
+      const y = yPos(cumFossil[i]);
+      if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+
+    ctx.strokeStyle = "#1976d2";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    for (let i = 0; i < n; i++) {
+      const x = paddingLeft + i * stepX;
+      const y = yPos(cumHP[i]);
+      if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+
+    ctx.fillStyle = "#f44336";
+    for (let i = 0; i < n; i++) {
+      const x = paddingLeft + i * stepX;
+      const y = yPos(cumFossil[i]);
+      ctx.beginPath();
+      ctx.arc(x, y, 2.5, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    ctx.fillStyle = "#1976d2";
+    for (let i = 0; i < n; i++) {
+      const x = paddingLeft + i * stepX;
+      const y = yPos(cumHP[i]);
+      ctx.beginPath();
+      ctx.arc(x, y, 2.5, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    if (paybackYear && paybackYear >= 1 && paybackYear <= n) {
+      const idx = paybackYear - 1;
+      const x = paddingLeft + idx * stepX;
+      const y = yPos(cumHP[idx]);
+
+      ctx.fillStyle = "#4caf50";
+      ctx.beginPath();
+      ctx.arc(x, y, 5, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = "#2e7d32";
+      ctx.font = "11px system-ui, sans-serif";
+      ctx.textAlign = "left";
+      ctx.textBaseline = "bottom";
+      ctx.fillText("Breakeven J" + paybackYear, x + 6, y - 4);
+
+      ctx.strokeStyle = "#4caf50";
+      ctx.setLineDash([4,3]);
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+      ctx.lineTo(x, height - paddingBottom);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+
+    const legendY = paddingTop + 5;
+    let legendX = paddingLeft + 10;
+    const legendGap = 130;
+
+    function drawLegend(color, label) {
+      ctx.fillStyle = color;
+      ctx.fillRect(legendX, legendY - 8, 14, 4);
+      ctx.fillStyle = "#222";
+      ctx.textAlign = "left";
+      ctx.textBaseline = "middle";
+      ctx.font = "11px system-ui, sans-serif";
+      ctx.fillText(label, legendX + 20, legendY - 6);
+      legendX += legendGap;
+    }
+
+    drawLegend("#f44336", "kumuliert fossil");
+    drawLegend("#1976d2", "kumuliert Wärmepumpe");
+  }
+
+  function drawTotalBarChart(totalFossil, totalHP) {
+    const canvas = document.getElementById("barChart");
+    if (!canvas || !canvas.getContext) return;
+    const ctx = canvas.getContext("2d");
+    const width = canvas.width;
+    const height = canvas.height;
+
+    ctx.clearRect(0, 0, width, height);
+
+    const paddingLeft = 60;
+    const paddingRight = 20;
+    const paddingTop = 20;
+    const paddingBottom = 40;
+
+    const chartWidth = width - paddingLeft - paddingRight;
+    const chartHeight = height - paddingTop - paddingBottom;
+
+    const values = [totalFossil, totalHP];
+    const labels = ["Fossil", "Wärmepumpe"];
+    const maxVal = Math.max(...values, 1);
+    if (!isFinite(maxVal) || maxVal <= 0) return;
+
+    ctx.strokeStyle = "#444";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(paddingLeft, paddingTop);
+    ctx.lineTo(paddingLeft, height - paddingBottom);
+    ctx.lineTo(width - paddingRight, height - paddingBottom);
+    ctx.stroke();
+
+    ctx.fillStyle = "#222";
+    ctx.font = "11px system-ui, sans-serif";
+    ctx.textAlign = "right";
+    ctx.textBaseline = "middle";
+
+    const yTicks = 4;
+    for (let i = 0; i <= yTicks; i++) {
+      const value = (maxVal * i) / yTicks;
+      const y = height - paddingBottom - (chartHeight * i / yTicks);
+      ctx.fillText(formatNumber(value, 0) + " €", paddingLeft - 5, y);
+      ctx.strokeStyle = "#e0e0e0";
+      ctx.lineWidth = 0.5;
+      ctx.beginPath();
+      ctx.moveTo(paddingLeft, y);
+      ctx.lineTo(width - paddingRight, y);
+      ctx.stroke();
+    }
+
+    const barWidth = chartWidth * 0.25;
+    const center1 = paddingLeft + chartWidth * 0.25;
+    const center2 = paddingLeft + chartWidth * 0.75;
+
+    function drawBar(centerX, value, label, color) {
+      const barHeight = chartHeight * (value / maxVal);
+      const x = centerX - barWidth / 2;
+      const y = height - paddingBottom - barHeight;
+
+      ctx.fillStyle = color;
+      ctx.fillRect(x, y, barWidth, barHeight);
+
+      ctx.fillStyle = "#222";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "bottom";
+      ctx.font = "11px system-ui, sans-serif";
+      ctx.fillText(formatNumber(value, 0) + " €", centerX, y - 2);
+
+      ctx.textBaseline = "top";
+      ctx.fillText(label, centerX, height - paddingBottom + 4);
+    }
+
+    drawBar(center1, totalFossil, labels[0], "#f44336");
+    drawBar(center2, totalHP, labels[1], "#1976d2");
+  }
+
+  function updateCharts(years, cumFossil, cumHP, totalFossil, totalHP, paybackYear) {
+    drawComparisonLineChart(years, cumFossil, cumHP, paybackYear);
+    drawTotalBarChart(totalFossil, totalHP);
+  }
+
+  function calc() {
+    const heatDemand = parseNum("heatDemand");
+    const years = Math.max(1, Math.round(parseNum("years", 20)));
+    let area = parseNum("area", 100);
+    if (area <= 0) area = 100;
+
+    const scenarioName = document.getElementById("co2Scenario").value;
+    const carrierFossil = document.getElementById("carrierFossil").value;
+    const carrierHP = document.getElementById("carrierHP").value;
+
+    const co2FactorFossil = EMISSION_FACTORS[carrierFossil] || 0;
+    const co2FactorStrom = EMISSION_FACTORS[carrierHP] || 0;
+
+    const investFossil = parseNum("investFossil");
+    const effFossil = parseNum("effFossil") / 100;
+    const priceFossil0 = parseNum("priceFossil");
+    const incFossil = parseNum("incFossil") / 100;
+    const maintFossil = parseNum("maintFossil");
+
+    const investHP = parseNum("investHP");
+    const subsidyHP = parseNum("subsidyHP");
+    const jaz = parseNum("jaz");
+    const priceEl0 = parseNum("priceEl");
+    const incEl = parseNum("incEl") / 100;
+    const maintHP = parseNum("maintHP");
+
+    const co2Prices = getScenarioPriceArray(scenarioName, years);
+    const currentYear = new Date().getFullYear();
+
+    const endEnergyFossil = effFossil > 0 ? heatDemand / effFossil : 0;
+    const elEnergyHP = jaz > 0 ? heatDemand / jaz : 0;
+
+    const emFossilTonsYear = (endEnergyFossil * co2FactorFossil) / 1000;
+    const emHPTonsYear = (elEnergyHP * co2FactorStrom) / 1000;
+    const co2FossilKgPerM2 = area > 0 ? (emFossilTonsYear * 1000) / area : 0;
+    const co2HPKgPerM2 = area > 0 ? (emHPTonsYear * 1000) / area : 0;
+    const landlordShareFossilStatic = getLandlordShareFromSpecificEmissions(co2FossilKgPerM2);
+    const landlordShareHPStatic = getLandlordShareFromSpecificEmissions(co2HPKgPerM2);
+
+    document.getElementById("outFossilCO2M2").textContent =
+      co2FossilKgPerM2.toLocaleString("de-DE", { maximumFractionDigits: 1 }) + " kg CO₂/m²a";
+    document.getElementById("outHPCO2M2").textContent =
+      co2HPKgPerM2.toLocaleString("de-DE", { maximumFractionDigits: 1 }) + " kg CO₂/m²a";
+    document.getElementById("outFossilShare").textContent =
+      "Vermieteranteil: " + formatPercent(landlordShareFossilStatic);
+    document.getElementById("outHPShare").textContent =
+      "Vermieteranteil: " + formatPercent(landlordShareHPStatic);
+
+    const extraInvest = (investHP - subsidyHP) - investFossil;
+
+    let cumFossil = [];
+    let cumHP = [];
+    let cumFossilTmp = investFossil;
+    let cumHPTmp = investHP - subsidyHP;
+
+    let cumSavings = 0;
+
+    const tbody = document.querySelector("#tableYears tbody");
+    tbody.innerHTML = "";
+
+    const landlordCostFossilPerYear = [];
+    const landlordCostHPPerYear = [];
+
+    for (let y = 0; y < years; y++) {
+      const yearLabel = currentYear + y;
+
+      const priceFossilYear = priceFossil0 * Math.pow(1 + incFossil, y);
+      const priceElYear = priceEl0 * Math.pow(1 + incEl, y);
+
+      const fuelCostFossil = endEnergyFossil * priceFossilYear;
+      const fuelCostHP = elEnergyHP * priceElYear;
+
+      const emFossilTons = (endEnergyFossil * co2FactorFossil) / 1000;
+      const emHPTons = (elEnergyHP * co2FactorStrom) / 1000;
+
+      const emFossilKgPerM2 = area > 0 ? (emFossilTons * 1000) / area : 0;
+      const emHPKgPerM2 = area > 0 ? (emHPTons * 1000) / area : 0;
+
+      const landlordShareFossil = getLandlordShareFromSpecificEmissions(emFossilKgPerM2);
+      const landlordShareHP = getLandlordShareFromSpecificEmissions(emHPKgPerM2);
+
+      const co2Price = co2Prices[y] || 0;
+      const co2CostFossil = emFossilTons * co2Price;
+      const co2CostHP = emHPTons * co2Price;
+
+      const landlordCostFossilYear =
+        fuelCostFossil + maintFossil + co2CostFossil * landlordShareFossil;
+      const landlordCostHPYear =
+        fuelCostHP + maintHP + co2CostHP * landlordShareHP;
+
+      landlordCostFossilPerYear.push(landlordCostFossilYear);
+      landlordCostHPPerYear.push(landlordCostHPYear);
+
+      cumFossilTmp += landlordCostFossilYear;
+      cumHPTmp += landlordCostHPYear;
+
+      cumFossil.push(cumFossilTmp);
+      cumHP.push(cumHPTmp);
+
+      const delta = landlordCostFossilYear - landlordCostHPYear;
+      cumSavings += delta;
+
+      const tr = document.createElement("tr");
+      const cells = [
+        yearLabel,
+        co2Price.toLocaleString("de-DE", { maximumFractionDigits: 0 }) + " €",
+        formatPercent(landlordShareFossil),
+        formatPercent(landlordShareHP),
+        formatMoney(landlordCostFossilYear, 0),
+        formatMoney(landlordCostHPYear, 0),
+        formatMoney(delta, 0),
+        formatMoney(cumSavings, 0)
+      ];
+      cells.forEach(val => {
+        const td = document.createElement("td");
+        td.textContent = val;
+        tr.appendChild(td);
+      });
+      tbody.appendChild(tr);
+    }
+
+    let paybackYear = null;
+    if (extraInvest > 0) {
+      for (let y = 0; y < years; y++) {
+        if (cumHP[y] <= cumFossil[y]) {
+          paybackYear = y + 1;
+          break;
+        }
+      }
+    }
+
+    const totalFossilLandlord = cumFossil[cumFossil.length - 1] || investFossil;
+    const totalHPLandlord = cumHP[cumHP.length - 1] || (investHP - subsidyHP);
+
+    document.getElementById("outExtraInvest").textContent = formatMoney(extraInvest, 0);
+
+    const elPayback = document.getElementById("outPayback");
+    if (extraInvest <= 0) {
+      elPayback.textContent = "Keine Mehrinvestition (WP nicht teurer als fossil)";
+    } else if (paybackYear === null) {
+      elPayback.textContent = "Keine vollständige Amortisation im Zeitraum";
+    } else {
+      elPayback.textContent = paybackYear + ". Jahr";
+    }
+
+    document.getElementById("outTotalFossil").textContent =
+      formatMoney(totalFossilLandlord, 0);
+    document.getElementById("outTotalHP").textContent =
+      formatMoney(totalHPLandlord, 0);
+
+    const savings = totalFossilLandlord - totalHPLandlord;
+    const elSavings = document.getElementById("outSavings");
+    const savingsText =
+      (savings >= 0 ? "Vorteil: " : "Nachteil: ") + formatMoney(Math.abs(savings), 0);
+    elSavings.textContent = savingsText;
+    elSavings.classList.remove("highlight-positive", "highlight-negative");
+    if (savings > 0) elSavings.classList.add("highlight-positive");
+    else if (savings < 0) elSavings.classList.add("highlight-negative");
+
+    updateCharts(
+      years,
+      cumFossil,
+      cumHP,
+      totalFossilLandlord,
+      totalHPLandlord,
+      paybackYear
+    );
+  }
+
+  // --- Förderrechner (Modal) ---
+
+  function updateFoerderUI() {
+    const art = document.getElementById("foerderGebaeudeArt").value;
+    const wohnDiv = document.getElementById("foerderWohnOptions");
+    const nwgDiv = document.getElementById("foerderNichtwohnOptions");
+    if (art === "wohn") {
+      wohnDiv.style.display = "";
+      nwgDiv.style.display = "none";
+    } else {
+      wohnDiv.style.display = "none";
+      nwgDiv.style.display = "";
+    }
+  }
+
+  function openFoerderModal() {
+    const backdrop = document.getElementById("foerderModalBackdrop");
+    const investHP = parseNum("investHP");
+    const investField = document.getElementById("foerderInvest");
+    if (investHP > 0 && investField) {
+      investField.value = investHP;
+    }
+
+    const area = parseNum("area");
+    const units = parseNum("units");
+    const areaSpan = document.getElementById("foerderInfoArea");
+    const unitsSpan = document.getElementById("foerderInfoUnits");
+    if (areaSpan) areaSpan.textContent = (isFinite(area) && area > 0) ? area : "–";
+    if (unitsSpan) unitsSpan.textContent = (isFinite(units) && units > 0) ? units : "–";
+
+    backdrop.style.display = "flex";
+    updateFoerderUI();
+  }
+
+  function closeFoerderModal() {
+    const backdrop = document.getElementById("foerderModalBackdrop");
+    backdrop.style.display = "none";
+  }
+
+  function berechneFoerderung(returnData = false) {
+    const art = document.getElementById("foerderGebaeudeArt").value;
+    const investVal = document.getElementById("foerderInvest").value;
+    const invest = parseFloat(String(investVal).replace(",", "."));
+    const ergebnisBox = document.getElementById("foerderErgebnis");
+
+    if (!isFinite(invest) || invest <= 0) {
+      if (ergebnisBox) {
+        ergebnisBox.innerHTML = "<p>Bitte eine gültige Investitionssumme eingeben.</p>";
+      }
+      return returnData ? null : undefined;
+    }
+
+    let foerderProzent = 0;
+    let foerderEuro = 0;
+    let begrenztAuf = null;
+    let kostenobergrenze = null;
+    let foerderhoechstbetragNWG = null;
+
+    if (art === "wohn") {
+      foerderProzent = 30;
+      const klima = document.getElementById("wohnKlimaBonus").checked;
+      const einkommen = document.getElementById("wohnEinkommensBonus").checked;
+      const eff = document.getElementById("wohnEffizienzBonus").checked;
+
+      if (klima) foerderProzent += 20;
+      if (einkommen) foerderProzent += 30;
+      if (eff) foerderProzent += 5;
+
+      if (foerderProzent > 70) foerderProzent = 70;
+
+      const units = parseNum("units", 1);
+      kostenobergrenze = getWohnGebaeudeKostenobergrenze(units);
+
+      const bemessungsGrundlage = Math.min(invest, kostenobergrenze);
+      if (bemessungsGrundlage < invest) {
+        begrenztAuf = bemessungsGrundlage;
+      }
+
+      foerderEuro = bemessungsGrundlage * foerderProzent / 100;
+    } else {
+      // Nichtwohngebäude – KfW 522: 30 % Grundförderung + 5 % Effizienzbonus, Förderhöchstbetrag nach m²
+      foerderProzent = 30;
+      const effNwg = document.getElementById("nwgEffizienzBonus").checked;
+      if (effNwg) foerderProzent += 5;
+
+      const area = parseNum("area", 0);
+      foerderhoechstbetragNWG = getNwgFoerderhoechstbetrag(area);
+
+      const bemessungsGrundlage = Math.min(invest, foerderhoechstbetragNWG);
+      if (bemessungsGrundlage < invest) {
+        begrenztAuf = bemessungsGrundlage;
+      }
+
+      foerderEuro = bemessungsGrundlage * foerderProzent / 100;
+    }
+
+    const restInvest = invest - foerderEuro;
+
+    if (ergebnisBox && !returnData) {
+      let textBegrenzung = "";
+      if (art === "wohn") {
+        const units = parseNum("units", 1);
+        textBegrenzung +=
+          "<p>Förderfähige Heizungs-Kostenobergrenze für " + units +
+          " Wohneinheit(en): " + formatMoney(kostenobergrenze || 0, 0) + "</p>";
+        if (begrenzAuf !== null) {
+          textBegrenzung +=
+            "<p>Die eingegebene Investition liegt darüber – für die Berechnung wird nur die Obergrenze berücksichtigt.</p>";
+        }
+      } else {
+        const area = parseNum("area", 0);
+        textBegrenzung +=
+          "<p>Förderhöchstbetrag nach KfW 522 für " +
+          formatNumber(area, 0) + " m² Nettogrundfläche: " +
+          formatMoney(foerderhoechstbetragNWG || 0, 0) + "</p>";
+        if (begrenzAuf !== null) {
+          textBegrenzung +=
+            "<p>Die eingegebene Investition liegt darüber – für die Berechnung wird nur der Förderhöchstbetrag berücksichtigt.</p>";
+        }
+      }
+
+      ergebnisBox.innerHTML =
+        "<p><strong>Förderquote:</strong> " +
+        foerderProzent.toLocaleString("de-DE", { maximumFractionDigits: 1 }) + " %</p>" +
+        "<p><strong>Geschätzter Zuschuss:</strong> " + formatMoney(foerderEuro, 0) + "</p>" +
+        "<p><strong>Verbleibende Investition nach Zuschuss:</strong> " +
+        formatMoney(restInvest, 0) + "</p>" +
+        textBegrenzung +
+        "<p class='hint'>Alle Angaben ohne Gewähr. Es gelten die aktuellen Richtlinien und Prüfungen der Förderstellen.</p>";
+    }
+
+    if (returnData) {
+      return {
+        art,
+        invest,
+        foerderProzent,
+        foerderEuro,
+        restInvest,
+        begrenztAuf,
+        kostenobergrenze,
+        foerderhoechstbetragNWG
+      };
+    }
+  }
+
+  function applyFoerderung() {
+    const res = berechneFoerderung(true);
+    if (!res) return;
+
+    const subsidyField = document.getElementById("subsidyHP");
+    if (subsidyField) {
+      subsidyField.value = Math.round(res.foerderEuro);
+    }
+
+    const investHPField = document.getElementById("investHP");
+    if (investHPField) {
+      investHPField.value = res.invest;
+    }
+
+    closeFoerderModal();
+    calc();
+  }
+
+  // Event-Listener
+  document.getElementById("btnCalc").addEventListener("click", calc);
+  document.getElementById("btnFoerderOpen").addEventListener("click", openFoerderModal);
+  document.getElementById("btnFoerderClose").addEventListener("click", closeFoerderModal);
+  document.getElementById("btnFoerderCancel").addEventListener("click", closeFoerderModal);
+  document.getElementById("btnFoerderCalc").addEventListener("click", function () {
+    berechneFoerderung(false);
+  });
+  document.getElementById("btnFoerderApply").addEventListener("click", applyFoerderung);
+  document.getElementById("foerderGebaeudeArt").addEventListener("change", updateFoerderUI);
+
+  // Initial
+  calc();
+  updateFoerderUI();
+</script>
+
+</body>
+</html>
